@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npx expo:*)",
+      "Bash(ls:*)",
+      "Bash(npx tsc:*)",
+      "Bash(find C:/Projects/rood-app/node_modules -name UnimplementedView*)",
+      "Bash(powershell -command \"Get-Item 'C:\\\\Users\\\\Abhishek Kumar\\\\Downloads\\\\chrome download\\\\Rood_Screens.pdf' | Select-Object Name, Length\")"
+    ]
+  }
+}
