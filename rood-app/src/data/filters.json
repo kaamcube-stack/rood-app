@@ -1,0 +1,231 @@
+{
+  "quickFilters": [
+    {
+      "id": "rood-recommended",
+      "label": "Rood-recommended",
+      "selected": false
+    },
+    {
+      "id": "photos",
+      "label": "Photos",
+      "selected": false
+    },
+    {
+      "id": "corner-property",
+      "label": "Corner Property",
+      "selected": false
+    }
+  ],
+  "propertyType": [
+    {
+      "id": "residential",
+      "label": "Residential",
+      "selected": false,
+      "subtypes": [
+        { "id": "flat", "label": "Flat", "selected": false },
+        { "id": "house", "label": "House", "selected": false },
+        { "id": "villa", "label": "Villa", "selected": false }
+      ]
+    },
+    {
+      "id": "commercial",
+      "label": "Commercial",
+      "selected": false,
+      "subtypes": [
+        { "id": "office", "label": "Office", "selected": false },
+        { "id": "shop", "label": "Shop", "selected": false },
+        { "id": "warehouse", "label": "Warehouse", "selected": false }
+      ]
+    },
+    {
+      "id": "land",
+      "label": "Land",
+      "selected": true,
+      "subtypes": [
+        { "id": "industrial-land", "label": "Industrial Land", "selected": false },
+        { "id": "agriculture-land", "label": "Agriculture Land", "selected": true },
+        { "id": "residential-land", "label": "Residential Land", "selected": false }
+      ]
+    }
+  ],
+  "location": {
+    "label": "Location",
+    "type": "search",
+    "placeholder": "Search Location",
+    "searchQuery": "",
+    "nearbyLocalities": [
+      { "id": "kharadi", "label": "Kharadi", "selected": false },
+      { "id": "wakad", "label": "Wakad", "selected": false },
+      { "id": "kothrud", "label": "Kothrud", "selected": false },
+      { "id": "baner_pashan_link_road", "label": "Baner Pashan Link Road", "selected": false },
+      { "id": "aundh_road", "label": "Aundh Road", "selected": false },
+      { "id": "wakad_phase_1", "label": "Wakad Phase 1", "selected": false },
+      { "id": "wakarusa", "label": "Wakarusa", "selected": false },
+      { "id": "pimpri", "label": "Pimpri", "selected": false },
+      { "id": "chinchwad", "label": "Chinchwad", "selected": false },
+      { "id": "wakadewadi", "label": "Wakadewadi", "selected": false }
+    ],
+    "selectedLocations": [
+      { "id": "hinjewadi", "label": "Hinjewadi", "selected": true }
+    ],
+    "mostSearchedLocations": [
+      { "id": "kharadi", "label": "Kharadi", "selected": false },
+      { "id": "hadapsar", "label": "Hadapsar", "selected": false },
+      { "id": "undri", "label": "Undri", "selected": false }
+    ]
+  },
+  "budget": {
+    "label": "Budget",
+    "type": "range",
+    "unit": "L",
+    "min": null,
+    "max": null,
+    "options": ["5 L", "10 L", "15 L", "20 L", "25 L", "30 L", "35 L", "40 L", "45 L", "50 L", "60 L", "70 L", "80 L", "90 L", "1 Cr", "1.5 Cr", "2 Cr", "3 Cr", "4 Cr", "5 Cr"]
+  },
+  "size": {
+    "label": "Size",
+    "type": "range",
+    "units": [
+      { "id": "sqft", "label": "sq.ft.", "selected": true },
+      { "id": "sqyards", "label": "sq. yards", "selected": false },
+      { "id": "sqmeters", "label": "sq. meters", "selected": false },
+      { "id": "acres", "label": "acres", "selected": false },
+      { "id": "bigha", "label": "bigha", "selected": false },
+      { "id": "hectares", "label": "hectares", "selected": false },
+      { "id": "rood", "label": "rood", "selected": false }
+    ],
+    "min": null,
+    "max": null
+  },
+  "availability": {
+    "label": "Availability",
+    "type": "select",
+    "options": [
+      { "id": "ready-to-move", "label": "Ready to Move", "selected": false },
+      { "id": "under-construction", "label": "Under Construction", "selected": false }
+    ]
+  },
+  "bhk": {
+    "label": "BHK",
+    "type": "multi-select",
+    "options": [
+      { "id": "1rk", "label": "1 RK", "selected": false },
+      { "id": "1bhk", "label": "1 BHK", "selected": false },
+      { "id": "2bhk", "label": "2 BHK", "selected": false },
+      { "id": "3bhk", "label": "3 BHK", "selected": false },
+      { "id": "4bhk", "label": "4 BHK", "selected": false },
+      { "id": "5bhk", "label": "5 BHK", "selected": false },
+      { "id": "6bhk", "label": "6 BHK", "selected": false }
+    ]
+  },
+  "constructionStatus": {
+    "label": "Construction Status",
+    "type": "select",
+    "options": [
+      { "id": "ready", "label": "Ready", "selected": false },
+      { "id": "under-construction", "label": "Under Construction", "selected": false },
+      { "id": "new-launch", "label": "New Launch", "selected": false }
+    ]
+  },
+  "furnishingStatus": {
+    "label": "Furnishing Status",
+    "type": "select",
+    "options": [
+      { "id": "unfurnished", "label": "Unfurnished", "selected": false },
+      { "id": "semi-furnished", "label": "Semi-Furnished", "selected": false },
+      { "id": "furnished", "label": "Furnished", "selected": false }
+    ]
+  },
+  "area": {
+    "label": "Area",
+    "type": "range",
+    "unit": "sqft",
+    "min": null,
+    "max": null
+  },
+  "bathrooms": {
+    "label": "Bathrooms",
+    "type": "multi-select",
+    "options": [
+      { "id": "1", "label": "1", "selected": false },
+      { "id": "2", "label": "2", "selected": false },
+      { "id": "3", "label": "3", "selected": false },
+      { "id": "4", "label": "4+", "selected": false }
+    ]
+  },
+  "newBookingResale": {
+    "label": "New Booking / Resale",
+    "type": "select",
+    "options": [
+      { "id": "new-booking", "label": "New Booking", "selected": false },
+      { "id": "resale", "label": "Resale", "selected": false }
+    ]
+  },
+  "amenities": {
+    "label": "Amenities",
+    "type": "multi-select",
+    "options": [
+      { "id": "parking", "label": "Parking", "selected": false },
+      { "id": "lift", "label": "Lift", "selected": false },
+      { "id": "gym", "label": "Gym", "selected": false },
+      { "id": "swimming-pool", "label": "Swimming Pool", "selected": false },
+      { "id": "security", "label": "Security", "selected": false },
+      { "id": "power-backup", "label": "Power Backup", "selected": false },
+      { "id": "garden", "label": "Garden", "selected": false },
+      { "id": "club-house", "label": "Club House", "selected": false }
+    ]
+  },
+  "floorPreference": {
+    "label": "Floor Preference",
+    "type": "multi-select",
+    "options": [
+      { "id": "ground", "label": "Ground Floor", "selected": false },
+      { "id": "1-5", "label": "1-5", "selected": false },
+      { "id": "6-10", "label": "6-10", "selected": false },
+      { "id": "11-15", "label": "11-15", "selected": false },
+      { "id": "15+", "label": "15+", "selected": false }
+    ]
+  },
+  "postedBy": {
+    "label": "Posted By",
+    "type": "multi-select",
+    "options": [
+      { "id": "owner", "label": "Owner", "selected": false },
+      { "id": "builder", "label": "Builder", "selected": false },
+      { "id": "dealer", "label": "Dealer", "selected": false }
+    ]
+  },
+  "builders": {
+    "label": "Builders",
+    "type": "search-multi-select",
+    "placeholder": "Search builders...",
+    "options": []
+  },
+  "projects": {
+    "label": "Projects",
+    "type": "search-multi-select",
+    "placeholder": "Search projects...",
+    "options": []
+  },
+  "facing": {
+    "label": "Facing",
+    "type": "multi-select",
+    "options": [
+      { "id": "north", "label": "North", "selected": false },
+      { "id": "south", "label": "South", "selected": false },
+      { "id": "east", "label": "East", "selected": false },
+      { "id": "west", "label": "West", "selected": false },
+      { "id": "north-east", "label": "North East", "selected": false },
+      { "id": "north-west", "label": "North West", "selected": false },
+      { "id": "south-east", "label": "South East", "selected": false },
+      { "id": "south-west", "label": "South West", "selected": false }
+    ]
+  },
+  "dimension": {
+    "label": "Dimension",
+    "type": "range",
+    "unit": "sqft",
+    "min": null,
+    "max": null
+  }
+}
