@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons, MaterialCommunityIcons, Feather, MaterialIcons } from '@expo/vector-icons';
+import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import { colors, typography, spacing, radius, shadows } from '../../theme/theme';
 import { filtersData } from '../../data';
 
@@ -22,11 +23,13 @@ type TabType = 'sort' | 'filter';
 export default function FilterScreen() {
   const navigation = useNavigation();
   const [activeTab, setActiveTab] = useState<TabType>('filter');
-  const [activeCategory, setActiveCategory] = useState('location');
+  const [activeCategory, setActiveCategory] = useState('quickFilters');
   const [filters, setFilters] = useState(filtersData);
+  const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({});
   const [searchQuery, setSearchQuery] = useState('');
 
   const categories = useMemo(() => [
+    { id: 'quickFilters', label: 'Quick Filters' },
     { id: 'location', label: 'Location' },
     { id: 'budget', label: 'Budget' },
     { id: 'availability', label: 'Availability' },
@@ -44,6 +47,120 @@ export default function FilterScreen() {
     { id: 'projects', label: 'Projects' },
     { id: 'facing', label: 'Facing Direction' },
   ], []);
+
+  const toggleQuickFilter = (filterId: string) => {
+    setFilters((prev: any) => ({
+      ...prev,
+      quickFilters: prev.quickFilters.map((filter: any) =>
+        filter.id === filterId ? { ...filter, selected: !filter.selected } : filter
+      ),
+    }));
+  };
+
+  const clearQuickFiltersSelection = () => {
+    setFilters((prev: any) => ({
+      ...prev,
+      quickFilters: prev.quickFilters.map((filter: any) => ({
+        ...filter,
+        selected: false,
+      })),
+    }));
+  };
+
+  const toggleLocationOption = (locationId: string) => {
+    setFilters((prev: any) => {
+      const updatedLocation = { ...prev.location };
+      const locationIndex = updatedLocation.allLocations.findIndex((loc: any) => loc.id === locationId);
+      
+      if (locationIndex !== -1) {
+        updatedLocation.allLocations[locationIndex] = {
+          ...updatedLocation.allLocations[locationIndex],
+          selected: !updatedLocation.allLocations[locationIndex].selected
+        };
+      }
+      
+      return { ...prev, location: updatedLocation };
+    });
+  };
+
+  const getSelectedLocations = () => {
+    return filters.location.allLocations.filter((loc: any) => loc.selected);
+  };
+
+  const getUnselectedLocations = () => {
+    return filters.location.allLocations.filter((loc: any) => !loc.selected);
+  };
+
+  const getFilteredLocations = () => {
+    if (!filters.location.searchQuery) return [];
+    return filters.location.allLocations.filter((loc: any) =>
+      loc.label.toLowerCase().includes(filters.location.searchQuery.toLowerCase())
+    );
+  };
+
+  const formatCurrency = (value: number) => {
+    if (value >= 10000000) {
+      return `₹ ${(value / 10000000).toFixed(1)} Cr`;
+    } else if (value >= 100000) {
+      return `₹ ${(value / 100000).toFixed(0)} L`;
+    } else {
+      return `₹ ${value.toLocaleString('en-IN')}`;
+    }
+  };
+
+  const updateBudgetRange = (type: 'min' | 'max', value: number) => {
+    setFilters((prev: any) => {
+      const updatedBudget = { ...prev.budget };
+      if (type === 'min') {
+        updatedBudget.minValue = Math.min(value, updatedBudget.maxValue - 1);
+      } else {
+        updatedBudget.maxValue = Math.max(value, updatedBudget.minValue + 1);
+      }
+      return { ...prev, budget: updatedBudget };
+    });
+  };
+
+  const toggleExpandedSection = (sectionId: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionId]: !prev[sectionId]
+    }));
+  };
+
+  const toggleConstructionStatusOption = (optionId: string) => {
+    setFilters((prev: any) => {
+      const updatedConstructionStatus = { ...prev.constructionStatus };
+      const optionIndex = updatedConstructionStatus.options.findIndex((opt: any) => opt.id === optionId);
+      
+      if (optionIndex !== -1) {
+        updatedConstructionStatus.options[optionIndex] = {
+          ...updatedConstructionStatus.options[optionIndex],
+          selected: !updatedConstructionStatus.options[optionIndex].selected
+        };
+      }
+      
+      return { ...prev, constructionStatus: updatedConstructionStatus };
+    });
+  };
+
+  const toggleConstructionSubOption = (optionId: string, subOptionId: string) => {
+    setFilters((prev: any) => {
+      const updatedConstructionStatus = { ...prev.constructionStatus };
+      const optionIndex = updatedConstructionStatus.options.findIndex((opt: any) => opt.id === optionId);
+      
+      if (optionIndex !== -1) {
+        const subOptionIndex = updatedConstructionStatus.options[optionIndex].subOptions.findIndex((sub: any) => sub.id === subOptionId);
+        if (subOptionIndex !== -1) {
+          updatedConstructionStatus.options[optionIndex].subOptions[subOptionIndex] = {
+            ...updatedConstructionStatus.options[optionIndex].subOptions[subOptionIndex],
+            selected: !updatedConstructionStatus.options[optionIndex].subOptions[subOptionIndex].selected
+          };
+        }
+      }
+      
+      return { ...prev, constructionStatus: updatedConstructionStatus };
+    });
+  };
 
   const toggleMultiSelect = (categoryKey: string, optionId: string) => {
     setFilters((prev: any) => ({
@@ -66,10 +183,17 @@ export default function FilterScreen() {
     }));
   };
 
+  const applyFilters = () => {
+    console.log('Applying filters:', filters);
+    // Navigate back or apply filters logic here
+    navigation.goBack();
+  };
+
   const closeFilter = () => navigation.goBack();
   const resetFilters = () => {
      setFilters(filtersData);
      setSearchQuery('');
+     setActiveCategory('quickFilters');
   };
 
   // ── Render Helpers ───────────────────────────────────────────
@@ -103,11 +227,20 @@ export default function FilterScreen() {
 
   const renderContent = () => {
     switch (activeCategory) {
+      case 'quickFilters':
+        return renderQuickFilters();
       case 'location':
         return renderLocation();
+      case 'budget':
+        return renderBudget();
       case 'propertyType':
         return renderPropertyTypes();
-      case 'budget':
+      case 'amenities':
+        return renderAmenities();
+      case 'bhk':
+        return renderBHK();
+      case 'constructionStatus':
+        return renderConstructionStatus();
       case 'area':
       case 'dimension':
         return renderRange(activeCategory);
@@ -116,40 +249,536 @@ export default function FilterScreen() {
     }
   };
 
-  const renderLocation = () => (
+  const renderQuickFilters = () => (
     <View style={styles.contentSection}>
-      <View style={styles.quickFiltersSub}>
-         <TouchableOpacity style={styles.quickFilterChipActive}>
-            <Ionicons name="checkmark-circle" size={16} color={colors.brand} />
-            <Text style={styles.quickFilterTextActive}>Rood-recommended</Text>
-         </TouchableOpacity>
-         <TouchableOpacity style={styles.quickFilterChip}>
-            <Text style={styles.quickFilterText}>High demand</Text>
-         </TouchableOpacity>
-      </View>
-
-      <View style={styles.optionGroup}>
-         {filters.quickFilters.map((f: any) => (
-            <TouchableOpacity 
-              key={f.id} 
-              style={styles.checkboxRow}
-              onPress={() => {}}
-            >
-               <Ionicons 
-                 name={f.selected ? "checkmark-circle" : "ellipse-outline"} 
-                 size={20} 
-                 color={f.selected ? colors.brand : colors.textMuted} 
-               />
-               <Text style={styles.checkboxLabel}>{f.label}</Text>
-            </TouchableOpacity>
-         ))}
+      <View style={styles.quickFiltersContainer}>
+        {filters.quickFilters.map((filter: any) => (
+          <TouchableOpacity
+            key={filter.id}
+            style={[
+              styles.quickFilterChip,
+              filter.selected && styles.quickFilterChipActive
+            ]}
+            onPress={() => toggleQuickFilter(filter.id)}
+          >
+            {filter.selected && (
+              <Ionicons name="checkmark-circle" size={16} color={colors.brand} />
+            )}
+            <Text style={[
+              styles.quickFilterText,
+              filter.selected && styles.quickFilterTextActive
+            ]}>
+              {filter.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
       
-      <TouchableOpacity style={styles.clearSelection}>
+      <TouchableOpacity style={styles.clearSelection} onPress={clearQuickFiltersSelection}>
         <Text style={styles.clearSelectionText}>Clear Selection</Text>
       </TouchableOpacity>
     </View>
   );
+
+  const renderBudget = () => {
+    const formatBudgetDisplay = (value: number) => {
+      if (value >= 10000000) return `${(value / 10000000).toFixed(1)} Cr`;
+      if (value >= 100000) return `${(value / 100000).toFixed(0)} L`;
+      return value.toString();
+    };
+
+    const parseBudgetInput = (text: string) => {
+      const cleanText = text.replace(/[^0-9.]/g, '');
+      const value = parseFloat(cleanText);
+      
+      if (text.includes('Cr')) {
+        return Math.floor(value * 10000000);
+      } else if (text.includes('L')) {
+        return Math.floor(value * 100000);
+      }
+      return Math.floor(value);
+    };
+
+    return (
+      <View style={styles.contentSection}>
+        <Text style={styles.contentTitle}>{filters.budget.label}</Text>
+        
+        {/* Budget Input Boxes */}
+        <View style={styles.rangeInputContainer}>
+          <View style={styles.rangeInputBox}>
+            <Text style={styles.rangeInputLabel}>MIN</Text>
+            <TextInput
+              style={styles.rangeInputValue}
+              value={formatBudgetDisplay(filters.budget.minValue)}
+              keyboardType="numeric"
+              onChangeText={(text) => {
+                const value = parseBudgetInput(text);
+                setFilters((prev: any) => ({
+                  ...prev,
+                  budget: { 
+                    ...prev.budget, 
+                    minValue: Math.min(value, filters.budget.maxValue - 1)
+                  }
+                }));
+              }}
+            />
+          </View>
+          <Text style={styles.rangeSeparator}>-</Text>
+          <View style={styles.rangeInputBox}>
+            <Text style={styles.rangeInputLabel}>MAX</Text>
+            <TextInput
+              style={styles.rangeInputValue}
+              value={formatBudgetDisplay(filters.budget.maxValue)}
+              keyboardType="numeric"
+              onChangeText={(text) => {
+                const value = parseBudgetInput(text);
+                setFilters((prev: any) => ({
+                  ...prev,
+                  budget: { 
+                    ...prev.budget, 
+                    maxValue: Math.max(value, filters.budget.minValue + 1)
+                  }
+                }));
+              }}
+            />
+          </View>
+        </View>
+
+        {/* Multi-Thumb Range Slider */}
+        <View style={styles.multiSliderContainer}>
+          <MultiSlider
+            values={[filters.budget.minValue, filters.budget.maxValue]}
+            sliderLength={width - SIDEBAR_WIDTH - 80}
+            onValuesChange={(values) => {
+              setFilters((prev: any) => ({
+                ...prev,
+                budget: { 
+                  ...prev.budget, 
+                  minValue: Math.floor(values[0]),
+                  maxValue: Math.floor(values[1])
+                }
+              }));
+            }}
+            min={filters.budget.min}
+            max={filters.budget.max}
+            step={100000} // 1 Lakh steps
+            allowOverlap={false}
+            snapped={true}
+            markerStyle={{
+              height: 24,
+              width: 24,
+              borderRadius: 12,
+              backgroundColor: colors.brand,
+              borderColor: colors.white,
+              borderWidth: 2,
+            }}
+            pressedMarkerStyle={{
+              height: 28,
+              width: 28,
+              borderRadius: 14,
+            }}
+            selectedStyle={{
+              backgroundColor: colors.brand,
+            }}
+            unselectedStyle={{
+              backgroundColor: colors.border,
+            }}
+            trackStyle={{
+              height: 4,
+              borderRadius: 2,
+            }}
+          />
+          
+          {/* Value Labels */}
+          <View style={styles.multiSliderLabels}>
+            <Text style={styles.multiSliderLabel}>{formatBudgetDisplay(filters.budget.minValue)}</Text>
+            <Text style={styles.multiSliderLabel}>{formatBudgetDisplay(filters.budget.maxValue)}</Text>
+          </View>
+        </View>
+
+        {/* Clear Selection Button */}
+        <TouchableOpacity style={styles.clearSelectionBtn}>
+          <Text style={styles.clearSelectionBtnText}>Clear Selection</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
+  const renderBHK = () => {
+    const bhkData = filters.bhk;
+
+    return (
+      <View style={styles.contentSection}>
+        <Text style={styles.contentTitle}>{bhkData.label}</Text>
+
+        {/* BHK - Pill/Chip Buttons */}
+        <View style={styles.bhkContainer}>
+          {bhkData.options.map((option: any) => (
+            <TouchableOpacity
+              key={option.id}
+              style={[
+                styles.bhkChip,
+                option.selected && styles.bhkChipSelected
+              ]}
+              onPress={() => {
+                setFilters((prev: any) => ({
+                  ...prev,
+                  bhk: {
+                    ...prev.bhk,
+                    options: prev.bhk.options.map((opt: any) =>
+                      opt.id === option.id ? { ...opt, selected: !opt.selected } : opt
+                    )
+                  }
+                }));
+              }}
+            >
+              {option.selected && (
+                <Ionicons name="checkmark-circle" size={20} color={colors.brand} style={styles.bhkChipIcon} />
+              )}
+              <Text style={[
+                styles.bhkChipText,
+                option.selected && styles.bhkChipTextSelected
+              ]}>
+                {option.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Clear Selection Button */}
+        <View style={styles.bhkClearContainer}>
+          <TouchableOpacity
+            style={styles.bhkClearBtn}
+            onPress={() => {
+              setFilters((prev: any) => ({
+                ...prev,
+                bhk: {
+                  ...prev.bhk,
+                  options: prev.bhk.options.map((opt: any) => ({
+                    ...opt,
+                    selected: false
+                  }))
+                }
+              }));
+            }}
+          >
+            <Text style={styles.bhkClearBtnText}>Clear Selection</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
+  const renderAmenities = () => {
+    const amenitiesData = filters.amenities;
+
+    return (
+      <View style={styles.contentSection}>
+        <Text style={styles.contentTitle}>{amenitiesData.label}</Text>
+
+        {/* Amenities - Pill/Chip Buttons */}
+        <View style={styles.amenitiesContainer}>
+          {amenitiesData.options.map((option: any) => (
+            <TouchableOpacity
+              key={option.id}
+              style={[
+                styles.amenityChip,
+                option.selected && styles.amenityChipSelected
+              ]}
+              onPress={() => {
+                setFilters((prev: any) => ({
+                  ...prev,
+                  amenities: {
+                    ...prev.amenities,
+                    options: prev.amenities.options.map((opt: any) =>
+                      opt.id === option.id ? { ...opt, selected: !opt.selected } : opt
+                    )
+                  }
+                }));
+              }}
+            >
+              {option.selected && (
+                <Ionicons name="checkmark-circle" size={20} color={colors.brand} style={styles.amenityChipIcon} />
+              )}
+              <Text style={[
+                styles.amenityChipText,
+                option.selected && styles.amenityChipTextSelected
+              ]}>
+                {option.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Clear Selection Button */}
+        <View style={styles.amenitiesClearContainer}>
+          <TouchableOpacity
+            style={styles.amenitiesClearBtn}
+            onPress={() => {
+              setFilters((prev: any) => ({
+                ...prev,
+                amenities: {
+                  ...prev.amenities,
+                  options: prev.amenities.options.map((opt: any) => ({
+                    ...opt,
+                    selected: false
+                  }))
+                }
+              }));
+            }}
+          >
+            <Text style={styles.amenitiesClearBtnText}>Clear Selection</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
+  const renderConstructionStatus = () => {
+  const constructionData = filters.constructionStatus;
+  
+  return (
+    <View style={styles.contentSection}>
+      <Text style={styles.contentTitle}>{constructionData.label}</Text>
+      
+      {/* Main Options - Pill/Chip Buttons */}
+      <View style={styles.constructionMainOptions}>
+        {constructionData.mainOptions.map((option: any) => (
+          <TouchableOpacity
+            key={option.id}
+            style={[
+              styles.constructionMainChip,
+              option.selected && styles.constructionMainChipSelected
+            ]}
+            onPress={() => {
+              setFilters((prev: any) => ({
+                ...prev,
+                constructionStatus: {
+                  ...prev.constructionStatus,
+                  mainOptions: prev.constructionStatus.mainOptions.map((opt: any) =>
+                    opt.id === option.id ? { ...opt, selected: !opt.selected } : opt
+                  )
+                }
+              }));
+            }}
+          >
+            {option.selected && (
+              <Ionicons name="checkmark-circle" size={20} color={colors.brand} style={styles.constructionMainChipIcon} />
+            )}
+            <Text style={[
+              styles.constructionMainChipText,
+              option.selected && styles.constructionMainChipTextSelected
+            ]}>
+              {option.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+      
+      {/* Sub Categories - Show when main option is selected */}
+      {constructionData.mainOptions.map((mainOption: any) => {
+        if (!mainOption.selected) return null;
+        
+        const subCategory = constructionData.subCategories[mainOption.id as keyof typeof constructionData.subCategories];
+        if (!subCategory) return null;
+        
+        return (
+          <View key={mainOption.id} style={styles.constructionSubCategory}>
+            <Text style={styles.constructionSubCategoryLabel}>{subCategory.label}</Text>
+            <View style={styles.constructionSubOptions}>
+              {subCategory.options.map((subOption: any) => (
+                <TouchableOpacity
+                  key={subOption.id}
+                  style={[
+                    styles.constructionSubChip,
+                    subOption.selected && styles.constructionSubChipSelected
+                  ]}
+                  onPress={() => {
+                    setFilters((prev: any) => ({
+                      ...prev,
+                      constructionStatus: {
+                        ...prev.constructionStatus,
+                        subCategories: {
+                          ...prev.constructionStatus.subCategories,
+                          [mainOption.id]: {
+                            ...prev.constructionStatus.subCategories[mainOption.id],
+                            options: prev.constructionStatus.subCategories[mainOption.id].options.map((opt: any) =>
+                              opt.id === subOption.id ? { ...opt, selected: !opt.selected } : opt
+                            )
+                          }
+                        }
+                      }
+                    }));
+                  }}
+                >
+                  {subOption.selected && (
+                    <Ionicons name="checkmark-circle" size={20} color={colors.brand} style={styles.constructionSubChipIcon} />
+                  )}
+                  <Text style={[
+                    styles.constructionSubChipText,
+                    subOption.selected && styles.constructionSubChipTextSelected
+                  ]}>
+                    {subOption.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        );
+      })}
+      
+      {/* Clear Selection Button */}
+      <View style={styles.constructionStatusClearContainer}>
+        <TouchableOpacity 
+          style={styles.constructionStatusClearBtn}
+          onPress={() => {
+            setFilters((prev: any) => ({
+              ...prev,
+              constructionStatus: {
+                ...prev.constructionStatus,
+                mainOptions: prev.constructionStatus.mainOptions.map((opt: any) => ({
+                  ...opt,
+                  selected: false
+                })),
+                subCategories: Object.keys(prev.constructionStatus.subCategories).reduce((acc: any, key: string) => {
+                  acc[key] = {
+                    ...prev.constructionStatus.subCategories[key],
+                    options: prev.constructionStatus.subCategories[key].options.map((opt: any) => ({
+                      ...opt,
+                      selected: false
+                    }))
+                  };
+                  return acc;
+                }, {})
+              }
+            }));
+          }}
+        >
+          <Text style={styles.constructionStatusClearBtnText}>Clear Selection</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
+
+  const renderLocation = () => {
+    const selectedLocations = getSelectedLocations();
+    const unselectedLocations = getUnselectedLocations();
+    const filteredLocations = getFilteredLocations();
+    const hasSearchQuery = filters.location.searchQuery.length > 0;
+
+    return (
+      <View style={styles.contentSection}>
+        {/* Search Input */}
+        <View style={styles.searchContainer}>
+          <Ionicons name="search" size={20} color={colors.textMuted} style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder={filters.location.placeholder}
+            value={filters.location.searchQuery}
+            onChangeText={(text) => setFilters((prev: any) => ({
+              ...prev,
+              location: { ...prev.location, searchQuery: text }
+            }))}
+          />
+        </View>
+
+        {/* Use Current Location */}
+        <TouchableOpacity 
+          style={styles.currentLocationRow}
+          onPress={() => setFilters((prev: any) => ({
+            ...prev,
+            location: {
+              ...prev.location,
+              useCurrentLocation: {
+                ...prev.location.useCurrentLocation,
+                selected: !prev.location.useCurrentLocation.selected
+              }
+            }
+          }))}
+        >
+          <Ionicons name="location" size={20} color={colors.brand} />
+          <Text style={styles.currentLocationText}>{filters.location.useCurrentLocation.label}</Text>
+        </TouchableOpacity>
+
+        {/* Search Results - Show when typing */}
+        {hasSearchQuery && (
+          <View style={styles.locationSection}>
+            <View style={styles.locationList}>
+              {filteredLocations.map((location: any) => (
+                <TouchableOpacity
+                  key={location.id}
+                  style={styles.locationRow}
+                  onPress={() => toggleLocationOption(location.id)}
+                >
+                  <Ionicons 
+                    name={location.selected ? "checkmark-circle" : "ellipse-outline"} 
+                    size={20} 
+                    color={location.selected ? colors.brand : colors.textMuted} 
+                  />
+                  <Text style={styles.locationLabel}>{location.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* When not searching, show Nearby Localities and Selected Locations */}
+        {!hasSearchQuery && (
+          <>
+            {/* Selected Locations - Show if any are selected */}
+            {selectedLocations.length > 0 && (
+              <View style={styles.locationSection}>
+                <Text style={styles.sectionTitle}>Selected Locations</Text>
+                <View style={styles.locationList}>
+                  {selectedLocations.map((location: any) => (
+                    <TouchableOpacity
+                      key={location.id}
+                      style={styles.locationRow}
+                      onPress={() => toggleLocationOption(location.id)}
+                    >
+                      <Ionicons 
+                        name={location.selected ? "checkmark-circle" : "ellipse-outline"} 
+                        size={20} 
+                        color={location.selected ? colors.brand : colors.textMuted} 
+                      />
+                      <Text style={styles.locationLabel}>{location.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {/* Nearby Localities - Show unselected locations */}
+            <View style={styles.locationSection}>
+              <Text style={styles.sectionTitle}>Nearby Localities</Text>
+              <View style={styles.locationList}>
+                {unselectedLocations.map((location: any) => (
+                  <TouchableOpacity
+                    key={location.id}
+                    style={styles.locationRow}
+                    onPress={() => toggleLocationOption(location.id)}
+                  >
+                    <Ionicons 
+                      name={location.selected ? "checkmark-circle" : "ellipse-outline"} 
+                      size={20} 
+                      color={location.selected ? colors.brand : colors.textMuted} 
+                    />
+                    <Text style={styles.locationLabel}>{location.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </>
+        )}
+
+        {/* Apply Button - Only for Location */}
+        <TouchableOpacity style={styles.locationApplyBtn} onPress={applyFilters}>
+          <Text style={styles.locationApplyBtnText}>Apply</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   const renderPropertyTypes = () => (
     <View style={styles.contentSection}>
@@ -166,6 +795,11 @@ export default function FilterScreen() {
           </TouchableOpacity>
         ))}
       </View>
+      
+      {/* Clear Selection Button */}
+      <TouchableOpacity style={styles.clearSelectionBtn}>
+        <Text style={styles.clearSelectionBtnText}>Clear Selection</Text>
+      </TouchableOpacity>
     </View>
   );
 
@@ -189,30 +823,131 @@ export default function FilterScreen() {
             </TouchableOpacity>
           ))}
         </View>
+        
+        {/* Clear Selection Button */}
+        <TouchableOpacity style={styles.clearSelectionBtn}>
+          <Text style={styles.clearSelectionBtnText}>Clear Selection</Text>
+        </TouchableOpacity>
       </View>
     );
   };
 
   const renderRange = (key: string) => {
     const data = (filters as any)[key];
+    
+    const formatAreaDisplay = (value: number) => {
+      if (!value) return '';
+      return Math.floor(value).toString();
+    };
+
+    const parseAreaInput = (text: string) => {
+      const cleanText = text.replace(/[^0-9.]/g, '');
+      return Math.floor(parseFloat(cleanText) || 0);
+    };
+
+    const maxValue = key === 'area' ? 10000 : 50000000;
+
     return (
       <View style={styles.contentSection}>
         <Text style={styles.contentTitle}>{data.label}</Text>
-        <View style={styles.rangeInputs}>
-          <TextInput
-            style={styles.rangeInput}
-            placeholder="Min"
-            keyboardType="numeric"
-            value={data.min?.toString()}
-          />
-          <View style={styles.rangeDash} />
-          <TextInput
-            style={styles.rangeInput}
-            placeholder="Max"
-            keyboardType="numeric"
-            value={data.max?.toString()}
-          />
+        
+        {/* Area Input Boxes */}
+        <View style={styles.rangeInputContainer}>
+          <View style={styles.rangeInputBox}>
+            <Text style={styles.rangeInputLabel}>MIN</Text>
+            <TextInput
+              style={styles.rangeInputValue}
+              value={formatAreaDisplay(data.min)}
+              keyboardType="numeric"
+              onChangeText={(text) => {
+                const value = parseAreaInput(text);
+                setFilters((prev: any) => ({
+                  ...prev,
+                  [key]: { 
+                    ...prev[key], 
+                    min: Math.min(value, data.max - 1)
+                  }
+                }));
+              }}
+            />
+          </View>
+          <Text style={styles.rangeSeparator}>-</Text>
+          <View style={styles.rangeInputBox}>
+            <Text style={styles.rangeInputLabel}>MAX</Text>
+            <TextInput
+              style={styles.rangeInputValue}
+              value={formatAreaDisplay(data.max)}
+              keyboardType="numeric"
+              onChangeText={(text) => {
+                const value = parseAreaInput(text);
+                setFilters((prev: any) => ({
+                  ...prev,
+                  [key]: { 
+                    ...prev[key], 
+                    max: Math.max(value, data.min + 1)
+                  }
+                }));
+              }}
+            />
+          </View>
         </View>
+
+        {/* Multi-Thumb Range Slider */}
+        <View style={styles.multiSliderContainer}>
+          <MultiSlider
+            values={[data.min, data.max]}
+            sliderLength={width - SIDEBAR_WIDTH - 80}
+            onValuesChange={(values) => {
+              setFilters((prev: any) => ({
+                ...prev,
+                [key]: { 
+                  ...prev[key], 
+                  min: Math.floor(values[0]),
+                  max: Math.floor(values[1])
+                }
+              }));
+            }}
+            min={0}
+            max={maxValue}
+            step={100} // 100 sq.ft. steps
+            allowOverlap={false}
+            snapped={true}
+            markerStyle={{
+              height: 24,
+              width: 24,
+              borderRadius: 12,
+              backgroundColor: colors.brand,
+              borderColor: colors.white,
+              borderWidth: 2,
+            }}
+            pressedMarkerStyle={{
+              height: 28,
+              width: 28,
+              borderRadius: 14,
+            }}
+            selectedStyle={{
+              backgroundColor: colors.brand,
+            }}
+            unselectedStyle={{
+              backgroundColor: colors.border,
+            }}
+            trackStyle={{
+              height: 4,
+              borderRadius: 2,
+            }}
+          />
+          
+          {/* Value Labels */}
+          <View style={styles.multiSliderLabels}>
+            <Text style={styles.multiSliderLabel}>{formatAreaDisplay(data.min)}</Text>
+            <Text style={styles.multiSliderLabel}>{formatAreaDisplay(data.max)}</Text>
+          </View>
+        </View>
+
+        {/* Clear Selection Button */}
+        <TouchableOpacity style={styles.clearSelectionBtn}>
+          <Text style={styles.clearSelectionBtnText}>Clear Selection</Text>
+        </TouchableOpacity>
       </View>
     );
   };
@@ -429,39 +1164,43 @@ const styles = StyleSheet.create({
   },
 
   // Content styles
-  quickFiltersSub: {
+  quickFiltersContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
     marginBottom: spacing.l,
   },
-  quickFilterChipActive: {
+  quickFilterChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.brandLight,
-    borderWidth: 1,
-    borderColor: colors.brand,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: radius.full,
-    gap: 4,
-  },
-  quickFilterChip: {
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderRadius: radius.full,
+    gap: 6,
   },
-  quickFilterTextActive: {
-    fontSize: 11,
-    color: colors.brand,
-    fontWeight: '700',
+  quickFilterChipActive: {
+    backgroundColor: '#E0F2FE', // Light sky blue color
+    borderColor: colors.brand,
   },
   quickFilterText: {
-    fontSize: 11,
+    fontSize: 12,
     color: colors.textSecondary,
+    fontWeight: '500',
+  },
+  quickFilterTextActive: {
+    fontSize: 12,
+    color: colors.brand,
+    fontWeight: '600',
+  },
+
+  quickFiltersSub: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: spacing.l,
   },
 
   optionGroup: {
@@ -484,6 +1223,412 @@ const styles = StyleSheet.create({
     ...typography.labelSmall,
     color: colors.primary,
     textDecorationLine: 'underline',
+  },
+
+  // Location specific styles
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.m,
+    marginBottom: spacing.l,
+  },
+  searchIcon: {
+    marginRight: spacing.s,
+  },
+  searchInput: {
+    flex: 1,
+    height: 44,
+    ...typography.body,
+    color: colors.textPrimary,
+  },
+  locationSection: {
+    marginBottom: spacing.l,
+  },
+  sectionTitle: {
+    ...typography.h4,
+    marginBottom: spacing.m,
+    color: colors.textPrimary,
+  },
+  locationList: {
+    gap: spacing.m,
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: spacing.s,
+  },
+  locationLabel: {
+    ...typography.body,
+    color: colors.textPrimary,
+  },
+  currentLocationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: spacing.m,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    marginTop: spacing.m,
+  },
+  currentLocationText: {
+    ...typography.body,
+    color: colors.brand,
+    fontWeight: '600',
+  },
+
+  // Range input styles
+  rangeInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.xl,
+  },
+  rangeInputBox: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.sm,
+    padding: spacing.m,
+  },
+  rangeInputLabel: {
+    ...typography.labelSmall,
+    color: colors.textMuted,
+    marginBottom: spacing.xs,
+  },
+  rangeInputValue: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontSize: 16,
+  },
+  rangeSeparator: {
+    fontSize: 20,
+    color: colors.textMuted,
+    marginHorizontal: spacing.m,
+  },
+
+  // Unit selector styles
+  unitSelectorContainer: {
+    marginBottom: spacing.xl,
+  },
+  unitLabel: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    marginBottom: spacing.s,
+  },
+  unitOptions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  unitOption: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  unitOptionSelected: {
+    backgroundColor: colors.brand,
+    borderColor: colors.brand,
+  },
+  unitOptionText: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+  },
+  unitOptionTextSelected: {
+    color: colors.white,
+  },
+
+  // Clear selection button styles
+  clearSelectionBtn: {
+    alignSelf: 'flex-start',
+    marginTop: spacing.l,
+  },
+  clearSelectionBtnText: {
+    ...typography.labelSmall,
+    color: colors.primary,
+    textDecorationLine: 'underline',
+  },
+
+  // Budget specific styles
+  budgetValuesContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: spacing.xl,
+  },
+  budgetValueItem: {
+    alignItems: 'center',
+  },
+  budgetValueLabel: {
+    ...typography.labelSmall,
+    color: colors.textMuted,
+    marginBottom: spacing.xs,
+  },
+  budgetValueText: {
+    ...typography.h3,
+    color: colors.textPrimary,
+    fontWeight: '600',
+  },
+  sliderContainer: {
+    marginBottom: spacing.xl,
+  },
+  sliderWrapper: {
+    marginBottom: spacing.l,
+  },
+  slider: {
+    width: '100%',
+    height: 40,
+  },
+  sliderThumb: {
+    width: 24,
+    height: 24,
+    backgroundColor: colors.brand,
+    borderRadius: 12,
+  },
+  sliderLabel: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginTop: spacing.s,
+  },
+
+  // Range slider styles (single slider with min/max)
+  rangeSliderContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.xl,
+  },
+  rangeSliderMinLabel: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    marginRight: spacing.m,
+    minWidth: 60,
+  },
+  rangeSlider: {
+    flex: 1,
+    height: 40,
+  },
+  rangeSliderMaxLabel: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    marginLeft: spacing.m,
+    minWidth: 60,
+    textAlign: 'right',
+  },
+
+  // Dual slider styles (two separate sliders for min and max)
+  dualSliderContainer: {
+    marginBottom: spacing.xl,
+  },
+  singleSliderContainer: {
+    marginBottom: spacing.l,
+  },
+
+  // Multi-slider styles (proper dual-thumb slider)
+  multiSliderContainer: {
+    marginBottom: spacing.xl,
+    paddingHorizontal: spacing.m,
+  },
+  multiSliderLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: spacing.m,
+  },
+  multiSliderLabel: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    fontWeight: '600',
+  },
+
+  // BHK styles - Pill/Chip Layout
+  bhkContainer: {
+    gap: spacing.m,
+  },
+  bhkChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    alignSelf: 'flex-start',
+  },
+  bhkChipSelected: {
+    backgroundColor: colors.brandLight,
+    borderColor: colors.brand,
+  },
+  bhkChipIcon: {
+    marginRight: spacing.s,
+  },
+  bhkChipText: {
+    ...typography.body,
+    color: colors.textSecondary,
+  },
+  bhkChipTextSelected: {
+    color: colors.brand,
+    fontWeight: '600',
+  },
+  bhkClearContainer: {
+    marginTop: spacing.xl,
+    alignItems: 'flex-start',
+  },
+  bhkClearBtn: {
+    paddingVertical: spacing.xs,
+  },
+  bhkClearBtnText: {
+    ...typography.body,
+    color: colors.brand,
+    textDecorationLine: 'underline',
+  },
+
+    // Amenities styles - Pill/Chip Layout
+  amenitiesContainer: {
+    gap: spacing.m,
+  },
+  amenityChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    alignSelf: 'flex-start',
+  },
+  amenityChipSelected: {
+    backgroundColor: colors.brandLight,
+    borderColor: colors.brand,
+  },
+  amenityChipIcon: {
+    marginRight: spacing.s,
+  },
+  amenityChipText: {
+    ...typography.body,
+    color: colors.textSecondary,
+  },
+  amenityChipTextSelected: {
+    color: colors.brand,
+    fontWeight: '600',
+  },
+  amenitiesClearContainer: {
+    marginTop: spacing.xl,
+    alignItems: 'flex-start',
+  },
+  amenitiesClearBtn: {
+    paddingVertical: spacing.xs,
+  },
+  amenitiesClearBtnText: {
+    ...typography.body,
+    color: colors.brand,
+    textDecorationLine: 'underline',
+  },
+
+  // Construction Status styles - Pill/Chip Layout
+  constructionMainOptions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.m,
+    marginBottom: spacing.l,
+  },
+  constructionMainChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  constructionMainChipSelected: {
+    backgroundColor: colors.brandLight,
+    borderColor: colors.brand,
+  },
+  constructionMainChipIcon: {
+    marginRight: spacing.s,
+  },
+  constructionMainChipText: {
+    ...typography.body,
+    color: colors.textSecondary,
+  },
+  constructionMainChipTextSelected: {
+    color: colors.brand,
+    fontWeight: '600',
+  },
+  constructionSubCategory: {
+    marginTop: spacing.m,
+    marginBottom: spacing.m,
+  },
+  constructionSubCategoryLabel: {
+    ...typography.bodySmall,
+    color: colors.textMuted,
+    marginBottom: spacing.s,
+    textAlign: 'center',
+  },
+  constructionSubOptions: {
+    gap: spacing.m,
+  },
+  constructionSubChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    alignSelf: 'flex-start',
+  },
+  constructionSubChipSelected: {
+    backgroundColor: colors.brandLight,
+    borderColor: colors.brand,
+  },
+  constructionSubChipIcon: {
+    marginRight: spacing.s,
+  },
+  constructionSubChipText: {
+    ...typography.body,
+    color: colors.textSecondary,
+  },
+  constructionSubChipTextSelected: {
+    color: colors.brand,
+    fontWeight: '600',
+  },
+  constructionStatusClearContainer: {
+    marginTop: spacing.xl,
+    alignItems: 'flex-start',
+  },
+  constructionStatusClearBtn: {
+    paddingVertical: spacing.xs,
+  },
+  constructionStatusClearBtnText: {
+    ...typography.body,
+    color: colors.brand,
+    textDecorationLine: 'underline',
+  },
+  budgetOptionsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  budgetOptionChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  budgetOptionText: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
   },
 
   chipGrid: {
@@ -581,5 +1726,19 @@ const styles = StyleSheet.create({
   seeAllBtnText: {
     ...typography.buttonSmall,
     color: colors.white,
+  },
+
+  // Location specific Apply button
+  locationApplyBtn: {
+    marginTop: spacing.xl,
+    backgroundColor: colors.brand,
+    paddingVertical: 14,
+    borderRadius: radius.sm,
+    alignItems: 'center',
+  },
+  locationApplyBtnText: {
+    ...typography.buttonSmall,
+    color: colors.white,
+    fontWeight: '600',
   },
 });

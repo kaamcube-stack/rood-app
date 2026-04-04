@@ -3,16 +3,51 @@
     {
       "id": "rood-recommended",
       "label": "Rood-recommended",
-      "selected": false
+      "selected": true
     },
     {
       "id": "photos",
       "label": "Photos",
-      "selected": false
+      "selected": true
     },
     {
       "id": "corner-property",
       "label": "Corner Property",
+      "selected": true
+    },
+    {
+      "id": "high-demand",
+      "label": "High demand",
+      "selected": false
+    },
+    {
+      "id": "videos",
+      "label": "Videos",
+      "selected": false
+    },
+    {
+      "id": "park-facing",
+      "label": "Park Facing",
+      "selected": false
+    },
+    {
+      "id": "gated-society",
+      "label": "Gated Society",
+      "selected": false
+    },
+    {
+      "id": "road-facing",
+      "label": "Road Facing",
+      "selected": false
+    },
+    {
+      "id": "having-boundary-wall",
+      "label": "Having boundary wall",
+      "selected": false
+    },
+    {
+      "id": "rood-verified",
+      "label": "Rood Verified",
       "selected": false
     }
   ],
@@ -53,7 +88,7 @@
     "type": "search",
     "placeholder": "Search Location",
     "searchQuery": "",
-    "nearbyLocalities": [
+    "allLocations": [
       { "id": "kharadi", "label": "Kharadi", "selected": false },
       { "id": "wakad", "label": "Wakad", "selected": false },
       { "id": "kothrud", "label": "Kothrud", "selected": false },
@@ -63,24 +98,24 @@
       { "id": "wakarusa", "label": "Wakarusa", "selected": false },
       { "id": "pimpri", "label": "Pimpri", "selected": false },
       { "id": "chinchwad", "label": "Chinchwad", "selected": false },
-      { "id": "wakadewadi", "label": "Wakadewadi", "selected": false }
+      { "id": "wakawaka", "label": "Wakawaka", "selected": false },
+      { "id": "hinjewadi", "label": "Hinjewadi", "selected": false }
     ],
-    "selectedLocations": [
-      { "id": "hinjewadi", "label": "Hinjewadi", "selected": true }
-    ],
-    "mostSearchedLocations": [
-      { "id": "kharadi", "label": "Kharadi", "selected": false },
-      { "id": "hadapsar", "label": "Hadapsar", "selected": false },
-      { "id": "undri", "label": "Undri", "selected": false }
-    ]
+    "useCurrentLocation": {
+      "id": "current-location",
+      "label": "Use my current location",
+      "selected": false,
+      "icon": "location"
+    }
   },
   "budget": {
     "label": "Budget",
     "type": "range",
     "unit": "L",
-    "min": null,
-    "max": null,
-    "options": ["5 L", "10 L", "15 L", "20 L", "25 L", "30 L", "35 L", "40 L", "45 L", "50 L", "60 L", "70 L", "80 L", "90 L", "1 Cr", "1.5 Cr", "2 Cr", "3 Cr", "4 Cr", "5 Cr"]
+    "min": 0,
+    "max": 50000000,
+    "minValue": 0,
+    "maxValue": 50000000
   },
   "size": {
     "label": "Size",
@@ -107,25 +142,42 @@
   },
   "bhk": {
     "label": "BHK",
-    "type": "multi-select",
+    "type": "pill-select",
     "options": [
-      { "id": "1rk", "label": "1 RK", "selected": false },
-      { "id": "1bhk", "label": "1 BHK", "selected": false },
+      { "id": "1rk-1bhk", "label": "1RK/ 1 BHK", "selected": false },
       { "id": "2bhk", "label": "2 BHK", "selected": false },
       { "id": "3bhk", "label": "3 BHK", "selected": false },
       { "id": "4bhk", "label": "4 BHK", "selected": false },
-      { "id": "5bhk", "label": "5 BHK", "selected": false },
-      { "id": "6bhk", "label": "6 BHK", "selected": false }
+      { "id": "4plus-bhk", "label": "4+ BHK", "selected": false }
     ]
   },
   "constructionStatus": {
     "label": "Construction Status",
-    "type": "select",
-    "options": [
-      { "id": "ready", "label": "Ready", "selected": false },
-      { "id": "under-construction", "label": "Under Construction", "selected": false },
-      { "id": "new-launch", "label": "New Launch", "selected": false }
-    ]
+    "type": "multi-select",
+    "mainOptions": [
+      { "id": "ready-to-move", "label": "Ready To Move", "selected": false },
+      { "id": "under-construction", "label": "Under Construction", "selected": false }
+    ],
+    "subCategories": {
+      "ready-to-move": {
+        "label": "Age of Property",
+        "options": [
+          { "id": "0-1", "label": "0-1 year old", "selected": false },
+          { "id": "1-5", "label": "1-5 year old", "selected": false },
+          { "id": "5-10", "label": "5-10 year old", "selected": false },
+          { "id": "10+", "label": "10+ year old", "selected": false }
+        ]
+      },
+      "under-construction": {
+        "label": "Possession",
+        "options": [
+          { "id": "3-months", "label": "In 3 months", "selected": false },
+          { "id": "6-months", "label": "In 6 months", "selected": false },
+          { "id": "2026", "label": "In 2026", "selected": false },
+          { "id": "2027", "label": "In 2027", "selected": false }
+        ]
+      }
+    }
   },
   "furnishingStatus": {
     "label": "Furnishing Status",
@@ -140,8 +192,8 @@
     "label": "Area",
     "type": "range",
     "unit": "sqft",
-    "min": null,
-    "max": null
+    "min": 0,
+    "max": 10000
   },
   "bathrooms": {
     "label": "Bathrooms",
@@ -163,16 +215,16 @@
   },
   "amenities": {
     "label": "Amenities",
-    "type": "multi-select",
+    "type": "pill-select",
     "options": [
       { "id": "parking", "label": "Parking", "selected": false },
-      { "id": "lift", "label": "Lift", "selected": false },
-      { "id": "gym", "label": "Gym", "selected": false },
-      { "id": "swimming-pool", "label": "Swimming Pool", "selected": false },
-      { "id": "security", "label": "Security", "selected": false },
+      { "id": "club-house", "label": "Club House", "selected": false },
       { "id": "power-backup", "label": "Power Backup", "selected": false },
-      { "id": "garden", "label": "Garden", "selected": false },
-      { "id": "club-house", "label": "Club House", "selected": false }
+      { "id": "vaastu-compliant", "label": "Vaastu Compliant", "selected": false },
+      { "id": "park", "label": "Park", "selected": false },
+      { "id": "gymnasium", "label": "Gymnasium", "selected": false },
+      { "id": "lift", "label": "Lift", "selected": false },
+      { "id": "swimming-pool", "label": "Swimming Pool", "selected": false }
     ]
   },
   "floorPreference": {
