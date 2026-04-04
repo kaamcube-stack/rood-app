@@ -295,6 +295,29 @@ export default function FilterScreen() {
           <Text style={styles.budgetHeaderText}>MAX</Text>
         </View>
 
+        {/* Min/Max Input Boxes */}
+        <View style={styles.areaInputContainer}>
+          <View style={styles.areaInputBox}>
+            <Text style={styles.areaInputLabel}>MIN</Text>
+            <TextInput
+              style={styles.areaInputValue}
+              placeholder="0"
+              keyboardType="numeric"
+              onChangeText={(text) => updateBudgetRange('min', parseInt(text) || 0)}
+            />
+          </View>
+          <Text style={styles.areaInputSeparator}>-</Text>
+          <View style={styles.areaInputBox}>
+            <Text style={styles.areaInputLabel}>MAX</Text>
+            <TextInput
+              style={styles.areaInputValue}
+              placeholder="Any"
+              keyboardType="numeric"
+              onChangeText={(text) => updateBudgetRange('max', parseInt(text) || 0)}
+            />
+          </View>
+        </View>
+
         {/* Budget Options - Two Columns */}
         <View style={styles.budgetContainer}>
           {/* Min Column */}
@@ -1213,7 +1236,7 @@ const styles = StyleSheet.create({
   tabContainer: {
     flexDirection: 'row',
     margin: spacing.l,
-    backgroundColor: colors.background,
+    backgroundColor: '#F4F9FF',
     borderRadius: radius.md,
     padding: 4,
   },
@@ -1227,7 +1250,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   tabActive: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.white,
     ...shadows.card,
   },
   tabText: {
@@ -1244,7 +1267,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginHorizontal: spacing.l,
     marginBottom: spacing.m,
-    backgroundColor: colors.background,
+    backgroundColor: '#F4F9FF',
     borderRadius: radius.md,
     padding: 4,
   },
@@ -1264,7 +1287,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: spacing.s,
     borderRadius: radius.sm,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.white,
     ...shadows.card,
     gap: 8,
   },
@@ -1389,9 +1412,10 @@ const styles = StyleSheet.create({
 
   clearSelection: {
     marginTop: spacing.xl,
+    alignItems: 'flex-start',
   },
   clearSelectionText: {
-    ...typography.labelSmall,
+    ...typography.body,
     color: colors.brand,
     textDecorationLine: 'underline',
   },
@@ -1517,11 +1541,11 @@ const styles = StyleSheet.create({
   // Clear selection button styles
   clearSelectionBtn: {
     alignSelf: 'flex-start',
-    marginTop: spacing.l,
+    marginTop: spacing.xl,
   },
   clearSelectionBtnText: {
-    ...typography.labelSmall,
-    color: colors.primary,
+    ...typography.body,
+    color: colors.brand,
     textDecorationLine: 'underline',
   },
 
