@@ -110,12 +110,35 @@
   },
   "budget": {
     "label": "Budget",
-    "type": "range",
-    "unit": "L",
-    "min": 0,
-    "max": 50000000,
-    "minValue": 0,
-    "maxValue": 50000000
+    "type": "budget-select",
+    "minOptions": [
+      { "id": "no-min", "label": "No min", "selected": true, "value": null },
+      { "id": "10L", "label": "10 L", "selected": false, "value": 1000000 },
+      { "id": "20L", "label": "20 L", "selected": false, "value": 2000000 },
+      { "id": "30L", "label": "30 L", "selected": false, "value": 3000000 },
+      { "id": "40L", "label": "40 L", "selected": false, "value": 4000000 },
+      { "id": "50L", "label": "50 L", "selected": false, "value": 5000000 },
+      { "id": "60L", "label": "60 L", "selected": false, "value": 6000000 },
+      { "id": "70L", "label": "70 L", "selected": false, "value": 7000000 },
+      { "id": "80L", "label": "80 L", "selected": false, "value": 8000000 },
+      { "id": "90L", "label": "90 L", "selected": false, "value": 9000000 },
+      { "id": "1Cr", "label": "1 Cr", "selected": false, "value": 10000000 },
+      { "id": "1.5Cr", "label": "1.5 Cr", "selected": false, "value": 15000000 }
+    ],
+    "maxOptions": [
+      { "id": "no-max", "label": "No max", "selected": true, "value": null },
+      { "id": "10L", "label": "10 L", "selected": false, "value": 1000000 },
+      { "id": "20L", "label": "20 L", "selected": false, "value": 2000000 },
+      { "id": "30L", "label": "30 L", "selected": false, "value": 3000000 },
+      { "id": "40L", "label": "40 L", "selected": false, "value": 4000000 },
+      { "id": "50L", "label": "50 L", "selected": false, "value": 5000000 },
+      { "id": "60L", "label": "60 L", "selected": false, "value": 6000000 },
+      { "id": "70L", "label": "70 L", "selected": false, "value": 7000000 },
+      { "id": "80L", "label": "80 L", "selected": false, "value": 8000000 },
+      { "id": "90L", "label": "90 L", "selected": false, "value": 9000000 },
+      { "id": "1Cr", "label": "1 Cr", "selected": false, "value": 10000000 },
+      { "id": "1.5Cr", "label": "1.5 Cr", "selected": false, "value": 15000000 }
+    ]
   },
   "size": {
     "label": "Size",
@@ -190,10 +213,45 @@
   },
   "area": {
     "label": "Area",
-    "type": "range",
-    "unit": "sqft",
-    "min": 0,
-    "max": 10000
+    "type": "area-select",
+    "selectedUnit": "sqft",
+    "units": [
+      { "id": "sqft", "label": "sq.ft.", "selected": true },
+      { "id": "sqyards", "label": "sq.yards", "selected": false },
+      { "id": "sqmeters", "label": "sq.meters", "selected": false },
+      { "id": "acres", "label": "acres", "selected": false },
+      { "id": "bigha", "label": "bigha", "selected": false },
+      { "id": "hectares", "label": "hectares", "selected": false },
+      { "id": "rood", "label": "rood", "selected": false }
+    ],
+    "minOptions": [
+      { "id": "no-min", "label": "No min", "selected": true, "value": null },
+      { "id": "100", "label": "100", "selected": false, "value": 100 },
+      { "id": "200", "label": "200", "selected": false, "value": 200 },
+      { "id": "300", "label": "300", "selected": false, "value": 300 },
+      { "id": "400", "label": "400", "selected": false, "value": 400 },
+      { "id": "500", "label": "500", "selected": false, "value": 500 },
+      { "id": "600", "label": "600", "selected": false, "value": 600 },
+      { "id": "700", "label": "700", "selected": false, "value": 700 },
+      { "id": "800", "label": "800", "selected": false, "value": 800 },
+      { "id": "900", "label": "900", "selected": false, "value": 900 },
+      { "id": "1000", "label": "1000", "selected": false, "value": 1000 },
+      { "id": "1500", "label": "1500", "selected": false, "value": 1500 }
+    ],
+    "maxOptions": [
+      { "id": "no-max", "label": "No max", "selected": true, "value": null },
+      { "id": "100", "label": "100", "selected": false, "value": 100 },
+      { "id": "200", "label": "200", "selected": false, "value": 200 },
+      { "id": "300", "label": "300", "selected": false, "value": 300 },
+      { "id": "400", "label": "400", "selected": false, "value": 400 },
+      { "id": "500", "label": "500", "selected": false, "value": 500 },
+      { "id": "600", "label": "600", "selected": false, "value": 600 },
+      { "id": "700", "label": "700", "selected": false, "value": 700 },
+      { "id": "800", "label": "800", "selected": false, "value": 800 },
+      { "id": "900", "label": "900", "selected": false, "value": 900 },
+      { "id": "1000", "label": "1000", "selected": false, "value": 1000 },
+      { "id": "1500", "label": "1500", "selected": false, "value": 1500 }
+    ]
   },
   "bathrooms": {
     "label": "Bathrooms",

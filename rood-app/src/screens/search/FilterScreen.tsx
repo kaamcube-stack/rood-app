@@ -27,6 +27,7 @@ export default function FilterScreen() {
   const [filters, setFilters] = useState(filtersData);
   const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({});
   const [searchQuery, setSearchQuery] = useState('');
+  const [showAreaUnitDropdown, setShowAreaUnitDropdown] = useState(false);
 
   const categories = useMemo(() => [
     { id: 'quickFilters', label: 'Quick Filters' },
@@ -242,6 +243,7 @@ export default function FilterScreen() {
       case 'constructionStatus':
         return renderConstructionStatus();
       case 'area':
+        return renderArea();
       case 'dimension':
         return renderRange(activeCategory);
       default:
@@ -281,125 +283,113 @@ export default function FilterScreen() {
   );
 
   const renderBudget = () => {
-    const formatBudgetDisplay = (value: number) => {
-      if (value >= 10000000) return `${(value / 10000000).toFixed(1)} Cr`;
-      if (value >= 100000) return `${(value / 100000).toFixed(0)} L`;
-      return value.toString();
-    };
-
-    const parseBudgetInput = (text: string) => {
-      const cleanText = text.replace(/[^0-9.]/g, '');
-      const value = parseFloat(cleanText);
-      
-      if (text.includes('Cr')) {
-        return Math.floor(value * 10000000);
-      } else if (text.includes('L')) {
-        return Math.floor(value * 100000);
-      }
-      return Math.floor(value);
-    };
+    const budgetData = filters.budget;
 
     return (
       <View style={styles.contentSection}>
-        <Text style={styles.contentTitle}>{filters.budget.label}</Text>
-        
-        {/* Budget Input Boxes */}
-        <View style={styles.rangeInputContainer}>
-          <View style={styles.rangeInputBox}>
-            <Text style={styles.rangeInputLabel}>MIN</Text>
-            <TextInput
-              style={styles.rangeInputValue}
-              value={formatBudgetDisplay(filters.budget.minValue)}
-              keyboardType="numeric"
-              onChangeText={(text) => {
-                const value = parseBudgetInput(text);
-                setFilters((prev: any) => ({
-                  ...prev,
-                  budget: { 
-                    ...prev.budget, 
-                    minValue: Math.min(value, filters.budget.maxValue - 1)
-                  }
-                }));
-              }}
-            />
-          </View>
-          <Text style={styles.rangeSeparator}>-</Text>
-          <View style={styles.rangeInputBox}>
-            <Text style={styles.rangeInputLabel}>MAX</Text>
-            <TextInput
-              style={styles.rangeInputValue}
-              value={formatBudgetDisplay(filters.budget.maxValue)}
-              keyboardType="numeric"
-              onChangeText={(text) => {
-                const value = parseBudgetInput(text);
-                setFilters((prev: any) => ({
-                  ...prev,
-                  budget: { 
-                    ...prev.budget, 
-                    maxValue: Math.max(value, filters.budget.minValue + 1)
-                  }
-                }));
-              }}
-            />
-          </View>
+        <Text style={styles.contentTitle}>{budgetData.label}</Text>
+
+        {/* Min/Max Header */}
+        <View style={styles.budgetHeader}>
+          <Text style={styles.budgetHeaderText}>MIN</Text>
+          <Text style={styles.budgetHeaderText}>MAX</Text>
         </View>
 
-        {/* Multi-Thumb Range Slider */}
-        <View style={styles.multiSliderContainer}>
-          <MultiSlider
-            values={[filters.budget.minValue, filters.budget.maxValue]}
-            sliderLength={width - SIDEBAR_WIDTH - 80}
-            onValuesChange={(values) => {
-              setFilters((prev: any) => ({
-                ...prev,
-                budget: { 
-                  ...prev.budget, 
-                  minValue: Math.floor(values[0]),
-                  maxValue: Math.floor(values[1])
-                }
-              }));
-            }}
-            min={filters.budget.min}
-            max={filters.budget.max}
-            step={100000} // 1 Lakh steps
-            allowOverlap={false}
-            snapped={true}
-            markerStyle={{
-              height: 24,
-              width: 24,
-              borderRadius: 12,
-              backgroundColor: colors.brand,
-              borderColor: colors.white,
-              borderWidth: 2,
-            }}
-            pressedMarkerStyle={{
-              height: 28,
-              width: 28,
-              borderRadius: 14,
-            }}
-            selectedStyle={{
-              backgroundColor: colors.brand,
-            }}
-            unselectedStyle={{
-              backgroundColor: colors.border,
-            }}
-            trackStyle={{
-              height: 4,
-              borderRadius: 2,
-            }}
-          />
-          
-          {/* Value Labels */}
-          <View style={styles.multiSliderLabels}>
-            <Text style={styles.multiSliderLabel}>{formatBudgetDisplay(filters.budget.minValue)}</Text>
-            <Text style={styles.multiSliderLabel}>{formatBudgetDisplay(filters.budget.maxValue)}</Text>
+        {/* Budget Options - Two Columns */}
+        <View style={styles.budgetContainer}>
+          {/* Min Column */}
+          <View style={styles.budgetColumn}>
+            {budgetData.minOptions.map((option: any) => (
+              <TouchableOpacity
+                key={option.id}
+                style={[
+                  styles.budgetChip,
+                  option.selected && styles.budgetChipSelected
+                ]}
+                onPress={() => {
+                  setFilters((prev: any) => ({
+                    ...prev,
+                    budget: {
+                      ...prev.budget,
+                      minOptions: prev.budget.minOptions.map((opt: any) =>
+                        opt.id === option.id ? { ...opt, selected: !opt.selected } : { ...opt, selected: false }
+                      )
+                    }
+                  }));
+                }}
+              >
+                {option.selected && (
+                  <Ionicons name="checkmark-circle" size={18} color={colors.brand} style={styles.budgetChipIcon} />
+                )}
+                <Text style={[
+                  styles.budgetChipText,
+                  option.selected && styles.budgetChipTextSelected
+                ]}>
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Max Column */}
+          <View style={styles.budgetColumn}>
+            {budgetData.maxOptions.map((option: any) => (
+              <TouchableOpacity
+                key={option.id}
+                style={[
+                  styles.budgetChip,
+                  option.selected && styles.budgetChipSelected
+                ]}
+                onPress={() => {
+                  setFilters((prev: any) => ({
+                    ...prev,
+                    budget: {
+                      ...prev.budget,
+                      maxOptions: prev.budget.maxOptions.map((opt: any) =>
+                        opt.id === option.id ? { ...opt, selected: !opt.selected } : { ...opt, selected: false }
+                      )
+                    }
+                  }));
+                }}
+              >
+                {option.selected && (
+                  <Ionicons name="checkmark-circle" size={18} color={colors.brand} style={styles.budgetChipIcon} />
+                )}
+                <Text style={[
+                  styles.budgetChipText,
+                  option.selected && styles.budgetChipTextSelected
+                ]}>
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 
         {/* Clear Selection Button */}
-        <TouchableOpacity style={styles.clearSelectionBtn}>
-          <Text style={styles.clearSelectionBtnText}>Clear Selection</Text>
-        </TouchableOpacity>
+        <View style={styles.budgetClearContainer}>
+          <TouchableOpacity
+            style={styles.budgetClearBtn}
+            onPress={() => {
+              setFilters((prev: any) => ({
+                ...prev,
+                budget: {
+                  ...prev.budget,
+                  minOptions: prev.budget.minOptions.map((opt: any) => ({
+                    ...opt,
+                    selected: opt.id === 'no-min'
+                  })),
+                  maxOptions: prev.budget.maxOptions.map((opt: any) => ({
+                    ...opt,
+                    selected: opt.id === 'no-max'
+                  }))
+                }
+              }));
+            }}
+          >
+            <Text style={styles.budgetClearBtnText}>Clear Selection</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   };
@@ -832,6 +822,180 @@ export default function FilterScreen() {
     );
   };
 
+  const renderArea = () => {
+    const areaData = filters.area;
+    const selectedUnit = areaData.units.find((u: any) => u.selected)?.label || 'sq.ft.';
+
+    return (
+      <View style={styles.contentSection}>
+        {/* Unit Selector Dropdown */}
+        <View style={styles.areaUnitSelector}>
+          <TouchableOpacity 
+            style={styles.areaUnitDropdown}
+            onPress={() => setShowAreaUnitDropdown(!showAreaUnitDropdown)}
+          >
+            <Text style={styles.areaUnitLabel}>Size in <Text style={styles.areaUnitUnderline}>{selectedUnit}</Text></Text>
+            <Ionicons name={showAreaUnitDropdown ? "chevron-up" : "chevron-down"} size={16} color={colors.textPrimary} />
+          </TouchableOpacity>
+          
+          {/* Unit Options Dropdown */}
+          {showAreaUnitDropdown && (
+            <View style={styles.areaUnitOptions}>
+              {areaData.units.map((unit: any) => (
+                <TouchableOpacity
+                  key={unit.id}
+                  style={styles.areaUnitOption}
+                  onPress={() => {
+                    setFilters((prev: any) => ({
+                      ...prev,
+                      area: {
+                        ...prev.area,
+                        units: prev.area.units.map((u: any) => ({
+                          ...u,
+                          selected: u.id === unit.id
+                        })),
+                        selectedUnit: unit.id
+                      }
+                    }));
+                    setShowAreaUnitDropdown(false);
+                  }}
+                >
+                  <View style={[
+                    styles.areaUnitRadio,
+                    unit.selected && styles.areaUnitRadioSelected
+                  ]}>
+                    {unit.selected && <View style={styles.areaUnitRadioInner} />}
+                  </View>
+                  <Text style={[
+                    styles.areaUnitOptionText,
+                    unit.selected && styles.areaUnitOptionTextSelected
+                  ]}>
+                    {unit.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
+
+        {/* Min/Max Input Boxes */}
+        <View style={styles.areaInputContainer}>
+          <View style={styles.areaInputBox}>
+            <Text style={styles.areaInputLabel}>MIN</Text>
+            <Text style={styles.areaInputValue}>₹ NA</Text>
+          </View>
+          <Text style={styles.areaInputSeparator}>-</Text>
+          <View style={styles.areaInputBox}>
+            <Text style={styles.areaInputLabel}>MAX</Text>
+            <Text style={styles.areaInputValue}>₹ NA</Text>
+          </View>
+        </View>
+
+        {/* Min/Max Header */}
+        <View style={styles.budgetHeader}>
+          <Text style={styles.budgetHeaderText}></Text>
+          <Text style={styles.budgetHeaderText}></Text>
+        </View>
+
+        {/* Area Options - Two Columns */}
+        <View style={styles.budgetContainer}>
+          {/* Min Column */}
+          <View style={styles.budgetColumn}>
+            {areaData.minOptions.map((option: any) => (
+              <TouchableOpacity
+                key={option.id}
+                style={[
+                  styles.budgetChip,
+                  option.selected && styles.budgetChipSelected
+                ]}
+                onPress={() => {
+                  setFilters((prev: any) => ({
+                    ...prev,
+                    area: {
+                      ...prev.area,
+                      minOptions: prev.area.minOptions.map((opt: any) =>
+                        opt.id === option.id ? { ...opt, selected: !opt.selected } : { ...opt, selected: false }
+                      )
+                    }
+                  }));
+                }}
+              >
+                {option.selected && (
+                  <Ionicons name="checkmark-circle" size={18} color={colors.brand} style={styles.budgetChipIcon} />
+                )}
+                <Text style={[
+                  styles.budgetChipText,
+                  option.selected && styles.budgetChipTextSelected
+                ]}>
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Max Column */}
+          <View style={styles.budgetColumn}>
+            {areaData.maxOptions.map((option: any) => (
+              <TouchableOpacity
+                key={option.id}
+                style={[
+                  styles.budgetChip,
+                  option.selected && styles.budgetChipSelected
+                ]}
+                onPress={() => {
+                  setFilters((prev: any) => ({
+                    ...prev,
+                    area: {
+                      ...prev.area,
+                      maxOptions: prev.area.maxOptions.map((opt: any) =>
+                        opt.id === option.id ? { ...opt, selected: !opt.selected } : { ...opt, selected: false }
+                      )
+                    }
+                  }));
+                }}
+              >
+                {option.selected && (
+                  <Ionicons name="checkmark-circle" size={18} color={colors.brand} style={styles.budgetChipIcon} />
+                )}
+                <Text style={[
+                  styles.budgetChipText,
+                  option.selected && styles.budgetChipTextSelected
+                ]}>
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Clear Selection Button */}
+        <View style={styles.budgetClearContainer}>
+          <TouchableOpacity
+            style={styles.budgetClearBtn}
+            onPress={() => {
+              setFilters((prev: any) => ({
+                ...prev,
+                area: {
+                  ...prev.area,
+                  minOptions: prev.area.minOptions.map((opt: any) => ({
+                    ...opt,
+                    selected: opt.id === 'no-min'
+                  })),
+                  maxOptions: prev.area.maxOptions.map((opt: any) => ({
+                    ...opt,
+                    selected: opt.id === 'no-max'
+                  }))
+                }
+              }));
+            }}
+          >
+            <Text style={styles.budgetClearBtnText}>Clear Selection</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
   const renderRange = (key: string) => {
     const data = (filters as any)[key];
     
@@ -972,14 +1136,14 @@ export default function FilterScreen() {
           onPress={() => setActiveTab('sort')}
         >
           <Text style={[styles.tabText, activeTab === 'sort' && styles.tabTextActive]}>Sort</Text>
-          <Feather name="bar-chart-2" size={16} color={activeTab === 'sort' ? colors.brand : colors.textMuted} style={{ transform: [{ rotate: '90deg' }] }} />
+          <Ionicons name="filter-outline" size={16} color={colors.textPrimary} />
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'filter' && styles.tabActive]}
           onPress={() => setActiveTab('filter')}
         >
           <Text style={[styles.tabText, activeTab === 'filter' && styles.tabTextActive]}>Filter</Text>
-          <MaterialCommunityIcons name="filter-variant" size={18} color={activeTab === 'filter' ? colors.brand : colors.textMuted} />
+          <MaterialCommunityIcons name="sort-ascending" size={18} color={colors.textPrimary} />
         </TouchableOpacity>
       </View>
 
@@ -987,13 +1151,13 @@ export default function FilterScreen() {
       <View style={styles.subTabContainer}>
         <TouchableOpacity style={styles.subTabActive}>
           <Text style={styles.subTabTextActive}>Residential</Text>
+          <MaterialIcons name="home" size={16} color={colors.textPrimary} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.subTab}>
           <Text style={styles.subTabText}>Commercial</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.subTab}>
           <Text style={styles.subTabText}>Land</Text>
-          <MaterialCommunityIcons name="home-outline" size={16} color={colors.textPrimary} />
         </TouchableOpacity>
       </View>
 
@@ -1078,33 +1242,40 @@ const styles = StyleSheet.create({
   // Sub-tabs
   subTabContainer: {
     flexDirection: 'row',
-    paddingHorizontal: spacing.l,
-    gap: 8,
+    marginHorizontal: spacing.l,
     marginBottom: spacing.m,
+    backgroundColor: colors.background,
+    borderRadius: radius.md,
+    padding: 4,
   },
   subTab: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: radius.full,
-    borderWidth: 1,
-    borderColor: colors.border,
-    gap: 4,
+    justifyContent: 'center',
+    paddingVertical: spacing.s,
+    borderRadius: radius.sm,
+    gap: 8,
   },
   subTabActive: {
-    backgroundColor: colors.black,
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: radius.full,
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.s,
+    borderRadius: radius.sm,
+    backgroundColor: colors.surface,
+    ...shadows.card,
+    gap: 8,
   },
   subTabText: {
     ...typography.labelSmall,
-    color: colors.textPrimary,
+    color: colors.textMuted,
   },
   subTabTextActive: {
     ...typography.labelSmall,
-    color: colors.white,
+    color: colors.textPrimary,
+    fontWeight: '700',
   },
 
   // Main Body
@@ -1221,7 +1392,7 @@ const styles = StyleSheet.create({
   },
   clearSelectionText: {
     ...typography.labelSmall,
-    color: colors.primary,
+    color: colors.brand,
     textDecorationLine: 'underline',
   },
 
@@ -1442,6 +1613,156 @@ const styles = StyleSheet.create({
     ...typography.bodySmall,
     color: colors.textSecondary,
     fontWeight: '600',
+  },
+
+  // Area Unit Selector styles
+  areaUnitSelector: {
+    marginBottom: spacing.m,
+    zIndex: 10,
+  },
+  areaUnitDropdown: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  areaUnitLabel: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontWeight: '500',
+  },
+  areaUnitUnderline: {
+    textDecorationLine: 'underline',
+  },
+  areaUnitOptions: {
+    marginTop: spacing.m,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    ...shadows.card,
+    padding: spacing.m,
+  },
+  areaUnitOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.s,
+    gap: spacing.m,
+  },
+  areaUnitRadio: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: colors.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  areaUnitRadioSelected: {
+    borderColor: colors.brand,
+  },
+  areaUnitRadioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.brand,
+  },
+  areaUnitOptionText: {
+    ...typography.body,
+    color: colors.textPrimary,
+  },
+  areaUnitOptionTextSelected: {
+    color: colors.brand,
+    fontWeight: '600',
+  },
+
+  // Area Input Box styles
+  areaInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.m,
+  },
+  areaInputBox: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    padding: spacing.m,
+    backgroundColor: colors.surface,
+  },
+  areaInputLabel: {
+    ...typography.labelSmall,
+    color: colors.textMuted,
+    marginBottom: spacing.xs,
+  },
+  areaInputValue: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontWeight: '600',
+  },
+  areaInputSeparator: {
+    fontSize: 20,
+    color: colors.textMuted,
+    marginHorizontal: spacing.m,
+  },
+
+  // Budget styles - Two Column Layout
+  budgetHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.m,
+    marginBottom: spacing.m,
+  },
+  budgetHeaderText: {
+    ...typography.labelSmall,
+    color: colors.textMuted,
+    fontWeight: '600',
+    flex: 1,
+    textAlign: 'center',
+  },
+  budgetContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: spacing.m,
+  },
+  budgetColumn: {
+    flex: 1,
+    gap: spacing.s,
+  },
+  budgetChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  budgetChipSelected: {
+    backgroundColor: colors.brandLight,
+    borderColor: colors.brand,
+  },
+  budgetChipIcon: {
+    marginRight: spacing.xs,
+  },
+  budgetChipText: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+  },
+  budgetChipTextSelected: {
+    color: colors.brand,
+    fontWeight: '600',
+  },
+  budgetClearContainer: {
+    marginTop: spacing.xl,
+    alignItems: 'flex-start',
+  },
+  budgetClearBtn: {
+    paddingVertical: spacing.xs,
+  },
+  budgetClearBtnText: {
+    ...typography.body,
+    color: colors.brand,
+    textDecorationLine: 'underline',
   },
 
   // BHK styles - Pill/Chip Layout
