@@ -11,7 +11,7 @@ export type AuthStackParams = {
   Splash: undefined;
   Onboarding: undefined;
   Login: undefined;
-  Otp: { mode: 'phone' | 'email'; phone?: string; email?: string };
+  Otp: { mode: 'phone' | 'email'; phone?: string; email?: string; countryCode?: string };
   Signup: { phone?: string };
   ForgotPassword: undefined;
 };

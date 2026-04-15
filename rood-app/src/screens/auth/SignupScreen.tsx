@@ -8,22 +8,52 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Dimensions,
 } from 'react-native';
 import { Image } from 'expo-image';
+import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
-
-const BUILDING_IMG =
-  'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=800&q=80';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useRoute, RouteProp } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthStackParams } from '../../navigation/AuthNavigator';
 import { useAuthStore } from '../../store/authStore';
 import { colors, typography, radius } from '../../theme/theme';
 
-type Nav = NativeStackNavigationProp<AuthStackParams>;
 type Route = RouteProp<AuthStackParams, 'Signup'>;
 
-// ── Floating label input ──────────────────────────────────────────
+/** Match LoginScreen.js */
+const PRIMARY_BLUE = '#86A7C3';
+const TEXT_BLACK = '#000000';
+const TEXT_GRAY = '#717171';
+const INPUT_BORDER = '#CCCCCC';
+const GUEST_BG = '#EBF2F9';
+const CARD_RADIUS = 32;
+const CARD_MARGIN_H = 12;
+const CARD_SCROLL_MAX_FRAC = 0.7;
+const LOGO_TOP_FRAC = 0.02;
+
+const { height: SCREEN_H } = Dimensions.get('window');
+
+function RoodLogo() {
+  return (
+    <Image
+      source={require('../../../assets/logo.png')}
+      style={logoStyles.img}
+      contentFit="contain"
+      accessibilityLabel="Rood"
+    />
+  );
+}
+
+const logoStyles = StyleSheet.create({
+  img: {
+    width: 162,
+    height: 54,
+    alignSelf: 'center',
+  },
+});
+
+/** Outlined field: label always on top border (Create Profile mock). */
 function FloatingInput({
   label,
   value,
@@ -44,22 +74,24 @@ function FloatingInput({
   rightSlot?: React.ReactNode;
 }) {
   const [focused, setFocused] = useState(false);
-  const floated = focused || value.length > 0;
 
   return (
-    <View>
+    <View style={fi.floatWrap}>
       <View
         style={[
           fi.box,
-          focused && fi.boxFocused,
+          focused && !error && fi.boxFocused,
           !!error && fi.boxError,
           !editable && fi.boxDisabled,
         ]}
       >
-        <Text style={[fi.label, floated && fi.labelFloated, focused && fi.labelFocusedColor]}>
+        <Text
+          pointerEvents="none"
+          style={[fi.labelOnBorder, focused && fi.labelFocused]}
+        >
           {label}
         </Text>
-        <View style={fi.inputRow}>
+        <View style={fi.inputRow} collapsable={false}>
           <TextInput
             style={fi.input}
             value={value}
@@ -69,6 +101,8 @@ function FloatingInput({
             keyboardType={keyboardType}
             autoCapitalize={autoCapitalize ?? 'words'}
             editable={editable}
+            placeholderTextColor="transparent"
+            underlineColorAndroid="transparent"
           />
           {rightSlot}
         </View>
@@ -84,42 +118,46 @@ function FloatingInput({
 }
 
 const fi = StyleSheet.create({
+  floatWrap: {
+    marginBottom: 4,
+    overflow: 'visible',
+  },
   box: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: INPUT_BORDER,
     borderRadius: radius.sm,
     paddingHorizontal: 14,
-    paddingTop: 8,
-    paddingBottom: 10,
-    minHeight: 60,
-    justifyContent: 'flex-end',
+    paddingTop: 16,
+    paddingBottom: 12,
+    minHeight: 56,
+    backgroundColor: colors.surface,
   },
-  boxFocused: { borderColor: colors.brand },
+  boxFocused: { borderColor: PRIMARY_BLUE },
   boxError: { borderColor: colors.error },
   boxDisabled: { backgroundColor: colors.surfaceAlt },
-  label: {
+  labelOnBorder: {
     position: 'absolute',
-    left: 14,
-    top: 18,
-    ...typography.bodyLarge,
-    color: colors.textMuted,
-  },
-  labelFloated: {
-    top: 8,
+    top: -9,
+    left: 12,
     ...typography.bodySmall,
-    color: colors.textMuted,
+    color: TEXT_GRAY,
+    backgroundColor: colors.surface,
+    paddingHorizontal: 6,
+    zIndex: 1,
   },
-  labelFocusedColor: { color: colors.brand },
+  labelFocused: { color: PRIMARY_BLUE },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 20,
+    minHeight: 28,
+    zIndex: 2,
   },
   input: {
     flex: 1,
+    minHeight: 28,
+    paddingVertical: 0,
     ...typography.bodyLarge,
-    color: colors.textPrimary,
-    padding: 0,
+    color: TEXT_BLACK,
   },
   errorRow: {
     flexDirection: 'row',
@@ -132,24 +170,26 @@ const fi = StyleSheet.create({
   },
 });
 
-// ── Phone field (read-only, pre-filled) ──────────────────────────
 function PhoneField({ phone }: { phone: string }) {
   return (
-    <View style={[fi.box, fi.boxDisabled]}>
-      <Text style={[fi.label, fi.labelFloated]}>Mobile number</Text>
-      <View style={[fi.inputRow, { gap: 10 }]}>
-        <Text style={{ ...typography.bodyLarge, color: colors.textPrimary }}>+91</Text>
-        <View style={{ width: 1, height: 20, backgroundColor: colors.border }} />
-        <Text style={{ flex: 1, ...typography.bodyLarge, color: colors.textPrimary }}>{phone}</Text>
-        <Ionicons name="phone-portrait-outline" size={20} color={colors.textMuted} />
+    <View style={fi.floatWrap}>
+      <View style={[fi.box, fi.boxDisabled]}>
+        <Text pointerEvents="none" style={fi.labelOnBorder}>
+          Mobile number
+        </Text>
+        <View style={[fi.inputRow, { gap: 10 }]}>
+          <Text style={{ ...typography.bodyLarge, color: TEXT_BLACK }}>+91</Text>
+          <View style={{ width: 1, height: 20, backgroundColor: INPUT_BORDER }} />
+          <Text style={{ flex: 1, ...typography.bodyLarge, color: TEXT_BLACK }}>{phone}</Text>
+          <Ionicons name="phone-portrait-outline" size={20} color={TEXT_GRAY} />
+        </View>
       </View>
     </View>
   );
 }
 
-// ── Main screen ───────────────────────────────────────────────────
 export default function SignupScreen() {
-  const navigation = useNavigation<Nav>();
+  const insets = useSafeAreaInsets();
   const { phone = '' } = useRoute<Route>().params ?? {};
   const login = useAuthStore((s) => s.login);
 
@@ -191,87 +231,115 @@ export default function SignupScreen() {
 
   return (
     <View style={{ flex: 1 }}>
+      <StatusBar style="dark" />
       <Image
-        source={{ uri: BUILDING_IMG }}
+        source={require('../../../assets/SignUpbackground.png')}
         style={StyleSheet.absoluteFill}
         contentFit="cover"
       />
       <View style={[StyleSheet.absoluteFill, s.overlay]} />
 
-      {/* Header branding */}
-      <View style={s.header}>
-        <Text style={s.logoText}>ROOD.</Text>
-        <View style={s.logoIconBox}>
-          <Ionicons name="home" size={20} color={colors.white} />
-        </View>
-      </View>
-
-      {/* Bottom sheet */}
       <KeyboardAvoidingView
-        style={s.kavWrapper}
+        style={s.kavRoot}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={s.sheet}>
-          <ScrollView
-            contentContainerStyle={s.sheetInner}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
+        <View style={s.column}>
+          <View
+            style={[
+              s.hero,
+              { paddingTop: insets.top + SCREEN_H * LOGO_TOP_FRAC },
+            ]}
           >
-            <Text style={s.title}>Create Profile</Text>
-            <Text style={s.subtitle}>Enter your name and email to Create Profile.</Text>
+            <RoodLogo />
+          </View>
 
-            <View style={{ gap: 12 }}>
-              <FloatingInput
-                label="First name"
-                value={firstName}
-                onChangeText={(t) => { setFirstName(t); clearErr('firstName'); }}
-                error={errors.firstName}
-              />
-              <FloatingInput
-                label="Surname"
-                value={surname}
-                onChangeText={(t) => { setSurname(t); clearErr('surname'); }}
-                error={errors.surname}
-              />
-              <FloatingInput
-                label="Email"
-                value={email}
-                onChangeText={(t) => { setEmail(t); clearErr('email'); }}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                error={errors.email}
-              />
-              <PhoneField phone={phone} />
+          <View
+            style={[
+              s.sheetOuter,
+              { paddingBottom: Math.max(insets.bottom, 14) },
+            ]}
+          >
+            <View style={s.sheetCard}>
+              <ScrollView
+                style={{ maxHeight: SCREEN_H * CARD_SCROLL_MAX_FRAC }}
+                contentContainerStyle={s.sheetInner}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+                bounces={false}
+              >
+                <Text style={s.title}>Create Profile</Text>
+                <Text style={s.subtitle}>
+                  Enter your name and email to Create Profile.
+                </Text>
+
+                <View style={s.fields}>
+                  <FloatingInput
+                    label="First name"
+                    value={firstName}
+                    onChangeText={(t) => {
+                      setFirstName(t);
+                      clearErr('firstName');
+                    }}
+                    error={errors.firstName}
+                  />
+                  <FloatingInput
+                    label="Surname"
+                    value={surname}
+                    onChangeText={(t) => {
+                      setSurname(t);
+                      clearErr('surname');
+                    }}
+                    error={errors.surname}
+                  />
+                  <FloatingInput
+                    label="Email"
+                    value={email}
+                    onChangeText={(t) => {
+                      setEmail(t);
+                      clearErr('email');
+                    }}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    error={errors.email}
+                  />
+                  <PhoneField phone={phone} />
+                </View>
+
+                <TouchableOpacity
+                  style={s.termsRow}
+                  onPress={() => setTermsChecked(!termsChecked)}
+                  activeOpacity={0.8}
+                >
+                  <View style={[s.checkbox, termsChecked && s.checkboxChecked]}>
+                    {termsChecked && (
+                      <Ionicons name="checkmark" size={11} color={colors.white} />
+                    )}
+                  </View>
+                  <Text style={s.termsText}>
+                    By continuing, you agree to our{' '}
+                    <Text style={s.termsLink}>Terms & Conditions</Text>
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[s.primaryBtn, !canSubmit && s.primaryBtnDisabled]}
+                  onPress={handleCreate}
+                  activeOpacity={0.85}
+                  disabled={!canSubmit}
+                >
+                  <Text style={s.primaryBtnText}>Create Profile</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={s.laterBtn}
+                  onPress={handleLater}
+                  activeOpacity={0.8}
+                >
+                  <Text style={s.laterBtnText}>Do it later</Text>
+                </TouchableOpacity>
+              </ScrollView>
             </View>
-
-            {/* Terms */}
-            <TouchableOpacity
-              style={s.termsRow}
-              onPress={() => setTermsChecked(!termsChecked)}
-              activeOpacity={0.8}
-            >
-              <View style={[s.checkbox, termsChecked && s.checkboxChecked]}>
-                {termsChecked && <Ionicons name="checkmark" size={11} color={colors.white} />}
-              </View>
-              <Text style={s.termsText}>
-                By continuing, you agree to our{' '}
-                <Text style={s.termsLink}>Terms & Conditions</Text>
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[s.primaryBtn, !canSubmit && s.primaryBtnDisabled]}
-              onPress={handleCreate}
-              activeOpacity={0.85}
-              disabled={!canSubmit}
-            >
-              <Text style={s.primaryBtnText}>Create Profile</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={s.laterBtn} onPress={handleLater} activeOpacity={0.7}>
-              <Text style={s.laterBtnText}>Do it later</Text>
-            </TouchableOpacity>
-          </ScrollView>
+          </View>
         </View>
       </KeyboardAvoidingView>
     </View>
@@ -280,103 +348,106 @@ export default function SignupScreen() {
 
 const s = StyleSheet.create({
   overlay: {
-    backgroundColor: 'rgba(0,0,0,0.25)',
+    backgroundColor: 'rgba(255,255,255,0.06)',
   },
-  header: {
-    flexDirection: 'row',
+  kavRoot: {
+    flex: 1,
+  },
+  column: {
+    flex: 1,
+  },
+  hero: {
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 72,
-    gap: 10,
+    justifyContent: 'flex-start',
+    paddingBottom: 12,
   },
-  logoText: {
-    fontFamily: 'Urbanist_700Bold',
-    fontSize: 28,
-    color: colors.white,
-    letterSpacing: 1,
-  },
-  logoIconBox: {
-    width: 38,
-    height: 38,
-    borderRadius: radius.md,
-    backgroundColor: colors.brand,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  kavWrapper: {
+  sheetOuter: {
     flex: 1,
     justifyContent: 'flex-end',
+    paddingHorizontal: CARD_MARGIN_H,
   },
-  sheet: {
+  sheetCard: {
+    borderRadius: CARD_RADIUS,
     backgroundColor: colors.surface,
-    borderTopLeftRadius: radius.xxl,
-    borderTopRightRadius: radius.xxl,
-    paddingTop: 28,
-    paddingHorizontal: 20,
-    paddingBottom: Platform.OS === 'ios' ? 8 : 24,
+    paddingTop: 22,
+    paddingHorizontal: 18,
+    overflow: 'hidden',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.14,
+    shadowRadius: 22,
+    elevation: 12,
   },
   sheetInner: {
-    paddingBottom: 16,
+    paddingBottom: 12,
   },
   title: {
     ...typography.h1,
-    color: colors.textPrimary,
-    marginBottom: 6,
+    color: TEXT_BLACK,
+    marginBottom: 8,
   },
   subtitle: {
     ...typography.body,
-    color: colors.textSecondary,
-    marginBottom: 20,
+    color: TEXT_GRAY,
+    marginBottom: 18,
+    lineHeight: 22,
+  },
+  fields: {
+    gap: 14,
   },
   termsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    marginTop: 20,
-    marginBottom: 20,
+    marginTop: 18,
+    marginBottom: 16,
   },
   checkbox: {
     width: 18,
     height: 18,
     borderRadius: 4,
     borderWidth: 1.5,
-    borderColor: colors.border,
+    borderColor: PRIMARY_BLUE,
     alignItems: 'center',
     justifyContent: 'center',
   },
   checkboxChecked: {
-    backgroundColor: colors.brand,
-    borderColor: colors.brand,
+    backgroundColor: PRIMARY_BLUE,
+    borderColor: PRIMARY_BLUE,
   },
   termsText: {
     ...typography.bodySmall,
-    color: colors.textSecondary,
+    color: TEXT_GRAY,
     flex: 1,
   },
   termsLink: {
-    color: colors.brand,
+    color: PRIMARY_BLUE,
     fontFamily: 'Inter_600SemiBold',
   },
   primaryBtn: {
-    backgroundColor: colors.brand,
-    borderRadius: radius.sm,
+    backgroundColor: PRIMARY_BLUE,
+    borderRadius: 999,
     paddingVertical: 15,
     alignItems: 'center',
     marginBottom: 12,
   },
   primaryBtnDisabled: {
-    backgroundColor: colors.primaryLight,
+    opacity: 0.45,
   },
   primaryBtnText: {
     ...typography.button,
     color: colors.white,
   },
   laterBtn: {
+    backgroundColor: GUEST_BG,
+    borderRadius: 999,
+    paddingVertical: 15,
     alignItems: 'center',
-    paddingVertical: 8,
+    marginBottom: 8,
   },
   laterBtnText: {
     ...typography.button,
-    color: colors.brand,
+    color: PRIMARY_BLUE,
+    fontFamily: 'Urbanist_600SemiBold',
   },
 });

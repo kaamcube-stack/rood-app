@@ -5,6 +5,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Provider } from 'react-redux';
+import { store } from './src/store/redux';
 import { useFonts } from 'expo-font';
 import {
   Urbanist_400Regular,
@@ -46,15 +48,17 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <QueryClientProvider client={queryClient}>
-          <NavigationContainer>
-            <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
-              <RootNavigator />
-            </View>
-          </NavigationContainer>
-        </QueryClientProvider>
-      </SafeAreaProvider>
+      <Provider store={store}>
+        <SafeAreaProvider>
+          <QueryClientProvider client={queryClient}>
+            <NavigationContainer>
+              <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+                <RootNavigator />
+              </View>
+            </NavigationContainer>
+          </QueryClientProvider>
+        </SafeAreaProvider>
+      </Provider>
     </GestureHandlerRootView>
   );
 }

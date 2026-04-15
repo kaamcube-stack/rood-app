@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialIcons, Feather } from '@expo/vector-icons';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useState } from 'react';
 import { colors, typography, spacing, radius, shadows } from '../../theme/theme';
 
@@ -235,6 +236,8 @@ function PropertyCard({
 export default function HomeScreen({ navigation }: any) {
   const [search, setSearch] = useState('');
   const [properties, setProperties] = useState(MOCK_PROPERTIES);
+  const tabBarHeight = useBottomTabBarHeight();
+  const listBottomPad = spacing[8] + (tabBarHeight > 0 ? tabBarHeight : 130);
 
   const toggleWishlist = (id: string) => {
     setProperties((prev) =>
@@ -308,7 +311,7 @@ export default function HomeScreen({ navigation }: any) {
             onPress={(id) => navigation?.navigate('PropertyDetail', { propertyId: id })}
           />
         )}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, { paddingBottom: listBottomPad }]}
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
         ListHeaderComponent={
