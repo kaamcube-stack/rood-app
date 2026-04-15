@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import { StatusBar } from 'expo-status-bar';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, typography, radius } from '../../theme/theme';
@@ -320,10 +320,7 @@ export default function LoginScreen() {
                 <FacebookIcon width={22} height={22} />
                 <Text style={s.socialLabel}>Continue with Facebook</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={s.socialBtn} activeOpacity={0.8}>
-                <AntDesign name="apple" size={22} color={colors.black} />
-                <Text style={s.socialLabel}>Continue with Apple</Text>
-              </TouchableOpacity>
+
               </ScrollView>
             </View>
           </View>
